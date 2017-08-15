@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link href="https://fonts.googleapis.com/css?family=Kaushan+Script" rel="stylesheet">
+        <style>
+            /* Always set the map height explicitly to define the size of the div
+            * element that contains the map. */
+            #map {
+                height: 100%;
+            }
+            /* Optional: Makes the sample page fill the window. */
+            html, body {
+                font-family: 'Kaushan Script', cursive;
+
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            header {
+                padding: 10px 15px;
+                background: rgb(249, 249, 249);
+                border-bottom: 4px solid #1d3544;
+                box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.21);
+                z-index: 2;
+                position: relative;
+            }
+            header h1 {
+                font-size: 18px;
+                display: inline-block; 
+            }
+
+            button {
+                border: 3px solid #000;
+                background: transparent;
+                float: right;
+                font-size: 18px;
+                padding: 5px;
+                margin: 0 5px;
+            }
+            button:hover {
+                border: 3px solid #000;
+                background: #000;
+                color: #fff;
+                cursor: pointer;
+            }
+
+        </style>
+    </head>
+  <body>
+        <header>
+            <h1>Edible</h1> - Find spiselige frugter og grønt <button type="button" id="login">🍓 Login</button> <button class="add-new">🍏 Add new</button>
+        </header>
+        <div id="map"></div>
+
+
+    <script src="https://www.gstatic.com/firebasejs/4.2.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.2.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.2.0/firebase-database.js"></script> 
+    <script>
+    // Initialize Firebase
+    var config = {
+        apiKey: "AIzaSyC0BD1PUM6D9IwyQPi6TdohePDzHXgKa3E",
+        authDomain: "ediblemap-1502561104580.firebaseapp.com",
+        databaseURL: "https://ediblemap-1502561104580.firebaseio.com",
+        projectId: "ediblemap-1502561104580",
+        storageBucket: "",
+        messagingSenderId: "207321519507"
+    };
+    firebase.initializeApp(config);
+
+    var provider = new firebase.auth.GoogleAuthProvider();
+
+    document.getElementById('login').addEventListener('click', function() {
+        console.log('login');
+        const promise = firebase.auth().signInWithRedirect(provider);
+        promise.catch(e => console.error(e.message))
+    })
+
+        firebase.auth().getRedirectResult().then(function(result) {
+            if (result.credential) {
+                // This gives you a Google Access Token. You can use it to access the Google API.
+                var token = result.credential.accessToken;
+                // ...
+                console.info(result)
+            }
+            // The signed-in user info.
+            var user = result.user;
+            }).catch(function(error) {
+            // Handle Errors here.
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            // The email of the user's account used.
+            var email = error.email;
+            // The firebase.auth.AuthCredential type that was used.
+            var credential = error.credential;
+            // ...'
+            console.error(error);
+            });
+
+    firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+        // User is signed in.
+        var displayName = user.displayName;
+        var email = user.email;
+        var emailVerified = user.emailVerified;
+        var photoURL = user.photoURL;
+        var isAnonymous = user.isAnonymous;
+        var uid = user.uid;
+        var providerData = user.providerData;
+        // ...
+        console.log('logged in...');
+    } else {
+        // User is signed out.
+        // ...
+    }
+    });
+
+
+
+
+    </script>
+    <script>
+      var map;
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 10,
+          center: new google.maps.LatLng(55.6,12.5),
+          mapTypeId: 'terrain',
+          styles: [
+            {
+              featureType: 'water',
+              elementType: 'geometry',
+              stylers: [{color: '#2d82ad'}]
+            }
+          ]
+        });
+
+        var iconBase = 'https://maps.google.com/mapfiles/kml/shapes/';
+        var makers = [
+            {
+                type: 'Apples',
+                latitude: 55.609384,
+                longitude: 12.463989
+            },
+            {
+                type: 'Apples',
+                latitude: 55.609384,
+                longitude: 12.465999
+            },
+            {
+                type: 'Blackberries',
+                latitude: 55.69357285194493,
+                longitude: 12.163369953632355
+            }
+        ];
+
+         map.addListener('click', function(e) {
+            data = {};
+            data.lat = e.latLng.lat();
+            data.lng = e.latLng.lng();
+            console.log(data);
+        });
+
+           // Try HTML5 geolocation.
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            var pos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+
+            console.log('current pos', pos);
+
+            map.setCenter(pos);
+          }, function() {
+            handleLocationError(true, infoWindow, map.getCenter());
+          });
+        } else {
+          // Browser doesn't support Geolocation
+          handleLocationError(false, infoWindow, map.getCenter());
+        }
+
+        makers.forEach((marker) => {
+            var latLng = new google.maps.LatLng(marker.latitude, marker.longitude);
+            var marker = new google.maps.Marker({
+                position: latLng,
+                map: map,
+                label: marker.type.split('')[0]
+            });
+        });
+      }
+
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCF-p_l55o8ZnuN3BWY6HjkSqW9aN7p71A&callback=initMap">
+    </script>
+  </body>
+</html>
